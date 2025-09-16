@@ -290,4 +290,3 @@ const App: React.FC = () => {
     </div>
   )
 }
-      <div className="h-24" />
