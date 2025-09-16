@@ -22,6 +22,6 @@ npm run preview
   Chance/Chest, Jail, Trading, Bankruptcy & win detection.
 
 ## Deploy to GitHub Pages
-1. Keep `base: '/monopoly/'` in `vite.config.ts`.
-2. Push to `main` on https://github.com/dacrap123/monopoly
-3. In repo **Settings → Pages**, set Source to **GitHub Actions**.
+1. Run `npm run build` to regenerate the production bundle.
+2. Commit the updated contents of the tracked `docs/` directory (mirrors `dist/`).
+3. In repo **Settings → Pages**, set **Source** to `main` and **Branch folder** to `/docs`.
