@@ -59,8 +59,6 @@ const App: React.FC = () => {
 
   const dice = state.dice
 
-  const propertyPanelPaddingClass = isPropertyPanelMinimized ? 'pb-24' : 'pb-56'
-
   const handleRoll = () => {
     if (!state.canRoll || winner) return
     const die1 = Math.floor(Math.random() * 6) + 1
@@ -102,7 +100,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className={`relative min-h-screen bg-neutral-100 ${propertyPanelPaddingClass}`}>
+    <div className={`relative min-h-screen bg-neutral-100 ${isPropertyPanelMinimized ? 'pb-24' : 'pb-56'}`}>
       <header className="border-b border-neutral-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <h1 className="text-3xl font-black uppercase tracking-widest text-neutral-800">Monopoly</h1>
@@ -365,17 +363,33 @@ const App: React.FC = () => {
               type="button"
               onClick={() => setPropertyPanelMinimized((prev) => !prev)}
               aria-expanded={!isPropertyPanelMinimized}
+              aria-controls="property-tray-content"
               aria-label={isPropertyPanelMinimized ? 'Expand property panel' : 'Minimize property panel'}
-              className="rounded-md border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-600 shadow-sm transition hover:bg-neutral-50"
+              className="group inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-600 shadow-sm transition hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             >
-              {isPropertyPanelMinimized ? 'Expand' : 'Minimize'}
+              <span>{isPropertyPanelMinimized ? 'Expand' : 'Minimize'}</span>
+              <svg
+                className={`h-3 w-3 transition-transform ${isPropertyPanelMinimized ? '-rotate-90' : 'rotate-90'}`}
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path d="M6 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           </div>
-          {!isPropertyPanelMinimized &&
-            (propertyHandGroups.length === 0 ? (
-              <p className="mt-3 text-xs text-neutral-500">You don't own any colored properties yet.</p>
+          <div
+            id="property-tray-content"
+            className={`overflow-hidden transition-[max-height] duration-300 ${
+              isPropertyPanelMinimized ? 'mt-0 pointer-events-none' : 'mt-3 pointer-events-auto'
+            }`}
+            style={{ maxHeight: isPropertyPanelMinimized ? 0 : 400 }}
+          >
+            {propertyHandGroups.length === 0 ? (
+              <p className="text-xs text-neutral-500">You don't own any colored properties yet.</p>
             ) : (
-              <div className="mt-3 flex flex-nowrap items-end gap-6 overflow-x-auto pb-3">
+              <div className="flex flex-nowrap items-end gap-6 overflow-x-auto pb-3">
                 {propertyHandGroups.map(({ color, properties }) => {
                   const colorInfo = COLOR_GROUP_DISPLAY[color]
                   const stackWidth = 128 + Math.max(properties.length - 1, 0) * 24
@@ -390,6 +404,7 @@ const App: React.FC = () => {
                           const houseCount = state.ownership[property.id]?.houses ?? 0
                           const offsetX = index * 24
                           const cardZIndex = properties.length - index
+                          const cardTilt = (index - (properties.length - 1) / 2) * 3
                           const buildingLabel =
                             houseCount === 0
                               ? 'No buildings'
@@ -400,7 +415,12 @@ const App: React.FC = () => {
                             <div
                               key={property.id}
                               className="absolute bottom-0 flex w-32 flex-col gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-sm transition-transform duration-200 hover:-translate-y-1"
-                              style={{ transform: `translateX(${offsetX}px)`, zIndex: cardZIndex }}
+                              style={{
+                                left: `${offsetX}px`,
+                                zIndex: cardZIndex,
+                                transform: `rotate(${cardTilt}deg)`,
+                                transformOrigin: 'bottom center',
+                              }}
                               title={property.name}
                             >
                               <div className="h-2 rounded-sm" style={{ backgroundColor: colorInfo.color }} />
@@ -417,7 +437,8 @@ const App: React.FC = () => {
                   )
                 })}
               </div>
-            ))}
+            )}
+          </div>
         </div>
       </div>
     </div>
