@@ -99,6 +99,9 @@ const App: React.FC = () => {
     dispatch({ type: 'USE_GET_OUT_OF_JAIL_CARD', deck })
   }
 
+  const propertyPanelToggleAriaLabel = isPropertyPanelMinimized ? 'Show property cards' : 'Hide property cards'
+  const propertyPanelToggleText = isPropertyPanelMinimized ? 'Show cards' : 'Hide cards'
+
   return (
     <div className={`relative min-h-screen bg-neutral-100 ${isPropertyPanelMinimized ? 'pb-24' : 'pb-56'}`}>
       <header className="border-b border-neutral-200 bg-white shadow-sm">
@@ -363,10 +366,10 @@ const App: React.FC = () => {
               onClick={() => setPropertyPanelMinimized((prev) => !prev)}
               aria-expanded={!isPropertyPanelMinimized}
               aria-controls="property-tray-content"
-              aria-label={isPropertyPanelMinimized ? 'Show property cards' : 'Hide property cards'}
+              aria-label={propertyPanelToggleAriaLabel}
               className="group inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-600 shadow-sm transition hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             >
-              <span>{isPropertyPanelMinimized ? 'Show cards' : 'Hide cards'}</span>
+              <span>{propertyPanelToggleText}</span>
               <svg
                 className={`h-3 w-3 transition-transform ${isPropertyPanelMinimized ? '-rotate-90' : 'rotate-90'}`}
                 viewBox="0 0 20 20"
@@ -447,10 +450,10 @@ const App: React.FC = () => {
             onClick={() => setPropertyPanelMinimized(false)}
             aria-expanded={!isPropertyPanelMinimized}
             aria-controls="property-tray-content"
-            aria-label="Show property cards"
+            aria-label={propertyPanelToggleAriaLabel}
             className="group inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-600 shadow-lg transition hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
           >
-            <span>Show cards</span>
+            <span>{propertyPanelToggleText}</span>
             <svg
               className="h-3 w-3 -rotate-90 transition-transform"
               viewBox="0 0 20 20"
