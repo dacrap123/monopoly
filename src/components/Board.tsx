@@ -27,20 +27,20 @@ const Board: React.FC<BoardProps> = ({ ownership, players, currentPlayerId }) =>
               className="relative"
             >
               <div
-                className={`relative flex h-full w-full flex-col justify-between rounded-xl border border-neutral-300 bg-white p-1 text-[10px] font-medium uppercase text-neutral-700 ${
+                className={`relative flex h-full w-full flex-col items-center rounded-xl border border-neutral-300 bg-white px-1.5 py-2 text-center text-[10px] font-medium uppercase text-neutral-700 ${
                   owner ? 'shadow-[0_0_0_2px_rgba(0,0,0,0.05)]' : ''
                 }`}
                 style={owner ? { boxShadow: `0 0 0 2px ${owner.color}55` } : undefined}
               >
                 <SpaceContent space={space} owned={owned} />
-                <div className="mt-1 min-h-[20px] text-[9px] font-semibold leading-tight text-neutral-900">
+                <div className="mt-1 w-full break-words text-[8px] font-semibold leading-tight tracking-tight text-neutral-900">
                   {space.shortName ?? space.name}
                 </div>
-                <div className="text-[8px] font-semibold text-neutral-500">
+                <div className="w-full text-[7px] font-semibold uppercase tracking-tight text-neutral-500">
                   {renderSpaceSubtitle(space)}
                 </div>
                 {owner && (
-                  <div className="mt-1 text-[8px] font-bold" style={{ color: owner.color }}>
+                  <div className="mt-1 w-full text-[7px] font-bold" style={{ color: owner.color }}>
                     {owner.name}
                   </div>
                 )}
@@ -79,7 +79,7 @@ const SpaceContent: React.FC<SpaceContentProps> = ({ space, owned }) => {
   if (space.type === 'property') {
     const color = COLOR_GROUP_DISPLAY[space.color].color
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col items-center gap-1">
         <div className="h-3 rounded-sm" style={{ backgroundColor: color }} />
         <BuildingDisplay houses={owned?.houses ?? 0} />
       </div>
@@ -87,7 +87,7 @@ const SpaceContent: React.FC<SpaceContentProps> = ({ space, owned }) => {
   }
   if (space.type === 'railroad') {
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col items-center gap-1">
         <div className="text-[20px]">🚂</div>
         <BuildingDisplay houses={0} />
       </div>
@@ -95,32 +95,32 @@ const SpaceContent: React.FC<SpaceContentProps> = ({ space, owned }) => {
   }
   if (space.type === 'utility') {
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col items-center gap-1">
         <div className="text-[20px]">⚡</div>
         <BuildingDisplay houses={0} />
       </div>
     )
   }
   if (space.type === 'tax') {
-    return <div className="flex h-full items-center text-[18px]">💰</div>
+    return <div className="flex h-full items-center justify-center text-[18px]">💰</div>
   }
   if (space.type === 'chance') {
-    return <div className="flex h-full items-center text-[18px]">❓</div>
+    return <div className="flex h-full items-center justify-center text-[18px]">❓</div>
   }
   if (space.type === 'community-chest') {
-    return <div className="flex h-full items-center text-[18px]">🎁</div>
+    return <div className="flex h-full items-center justify-center text-[18px]">🎁</div>
   }
   if (space.type === 'go') {
-    return <div className="flex h-full items-center text-[18px]">▶️</div>
+    return <div className="flex h-full items-center justify-center text-[18px]">▶️</div>
   }
   if (space.type === 'go-to-jail') {
-    return <div className="flex h-full items-center text-[18px]">🚔</div>
+    return <div className="flex h-full items-center justify-center text-[18px]">🚔</div>
   }
   if (space.type === 'jail') {
-    return <div className="flex h-full items-center text-[18px]">⛓️</div>
+    return <div className="flex h-full items-center justify-center text-[18px]">⛓️</div>
   }
   if (space.type === 'free-parking') {
-    return <div className="flex h-full items-center text-[18px]">🅿️</div>
+    return <div className="flex h-full items-center justify-center text-[18px]">🅿️</div>
   }
   return <BuildingDisplay houses={0} />
 }

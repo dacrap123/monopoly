@@ -1,6 +1,14 @@
 import React, { useMemo, useReducer } from 'react'
 import Board from './components/Board'
-import { BOARD_SPACES, PROPERTY_IDS_BY_COLOR, PropertySpace } from './data/board'
+import {
+  BOARD_SPACES,
+  PROPERTY_IDS_BY_COLOR,
+  PropertySpace,
+  RailroadSpace,
+  UtilitySpace,
+  ColorGroup,
+  COLOR_GROUP_DISPLAY,
+} from './data/board'
 import { formatCurrency } from './utils/gameHelpers'
 import { canBuild, canSell, createInitialState, gameReducer } from './utils/gameEngine'
 
@@ -23,10 +31,86 @@ const App: React.FC = () => {
     )
   }, [state.ownership, currentPlayer.id])
 
+  const ownedRailroads = useMemo(() => {
+    return BOARD_SPACES.filter(
+      (space): space is RailroadSpace =>
+        space.type === 'railroad' && state.ownership[space.id]?.ownerId === currentPlayer.id
+    )
+  }, [state.ownership, currentPlayer.id])
+
+  const ownedUtilities = useMemo(() => {
+    return BOARD_SPACES.filter(
+      (space): space is UtilitySpace =>
+        space.type === 'utility' && state.ownership[space.id]?.ownerId === currentPlayer.id
+    )
+  }, [state.ownership, currentPlayer.id])
+
   const propertyControlList = useMemo(() => {
     const monopolyIds = new Set(monopolies.flatMap((group) => group.ids))
     return ownedProperties.filter((space) => monopolyIds.has(space.id) || (state.ownership[space.id]?.houses ?? 0) > 0)
   }, [monopolies, ownedProperties, state.ownership])
+
+  const propertyHandGroups = useMemo(() => {
+    const grouped = new Map<ColorGroup, PropertySpace[]>()
+
+    for (const property of ownedProperties) {
+      const existing = grouped.get(property.color)
+      if (existing) {
+        existing.push(property)
+      } else {
+        grouped.set(property.color, [property])
+      }
+    }
+
+    return (Object.keys(PROPERTY_IDS_BY_COLOR) as ColorGroup[])
+      .map((color) => {
+        const properties = grouped.get(color) ?? []
+        if (properties.length === 0) {
+          return null
+        }
+        const orderedIds = PROPERTY_IDS_BY_COLOR[color]
+        const sorted = [...properties].sort(
+          (a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id)
+        )
+        return { color, properties: sorted }
+      })
+      .filter(Boolean) as { color: ColorGroup; properties: PropertySpace[] }[]
+  }, [ownedProperties])
+
+  const specialHoldings = useMemo(
+    () =>
+      [
+        {
+          key: 'railroads' as const,
+          label: 'Railroads',
+          accent: '#334155',
+          cards: ownedRailroads.map((space) => ({
+            id: space.id,
+            title: space.name,
+            name: space.shortName ?? space.name,
+            costLabel: `Cost ${formatCurrency(space.cost)}`,
+            detail: `Base rent ${formatCurrency(space.rent[0])}`,
+            icon: '🚂',
+          })),
+        },
+        {
+          key: 'utilities' as const,
+          label: 'Utilities',
+          accent: '#0ea5e9',
+          cards: ownedUtilities.map((space) => ({
+            id: space.id,
+            title: space.name,
+            name: space.shortName ?? space.name,
+            costLabel: `Cost ${formatCurrency(space.cost)}`,
+            detail: 'Rent 4× roll (10× for both)',
+            icon: space.name.toLowerCase().includes('electric') ? '⚡' : '🚰',
+          })),
+        },
+      ].filter((group) => group.cards.length > 0),
+    [ownedRailroads, ownedUtilities]
+  )
+
+  const hasPropertyHandContent = propertyHandGroups.length > 0 || specialHoldings.length > 0
 
   const dice = state.dice
 
@@ -71,7 +155,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-100">
+    <div className="relative min-h-screen bg-neutral-100 pb-36">
       <header className="border-b border-neutral-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <h1 className="text-3xl font-black uppercase tracking-widest text-neutral-800">Monopoly</h1>
@@ -315,6 +399,85 @@ const App: React.FC = () => {
           </aside>
         </div>
       </main>
+      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-200 bg-white/95 py-4 shadow-[0_-8px_16px_rgba(15,23,42,0.12)] backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="flex items-center justify-between gap-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-600">
+              {currentPlayer.name}'s Properties
+            </h3>
+            <span className="text-xs text-neutral-400">Grouped by color and type</span>
+          </div>
+          {!hasPropertyHandContent ? (
+            <p className="mt-3 text-xs text-neutral-500">You don't own any properties yet.</p>
+          ) : (
+            <div className="mt-3 flex flex-col gap-3">
+              {propertyHandGroups.map(({ color, properties }) => {
+                const colorInfo = COLOR_GROUP_DISPLAY[color]
+                return (
+                  <div key={color} className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white/80 p-3 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex h-2 w-12 rounded-full" style={{ backgroundColor: colorInfo.color }} />
+                      <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600">{colorInfo.label}</span>
+                    </div>
+                    <div className="flex gap-3 overflow-x-auto pb-1">
+                      {properties.map((property) => {
+                        const owned = state.ownership[property.id]
+                        const houseCount = owned?.houses ?? 0
+                        const buildingLabel =
+                          houseCount === 0
+                            ? 'No buildings'
+                            : houseCount === 5
+                            ? 'Hotel'
+                            : `${houseCount} House${houseCount === 1 ? '' : 's'}`
+                        return (
+                          <div
+                            key={property.id}
+                            className="flex min-w-[150px] flex-none flex-col gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-sm"
+                            title={property.name}
+                          >
+                            <div className="h-2 rounded-sm" style={{ backgroundColor: colorInfo.color }} />
+                            <div className="text-sm font-semibold text-neutral-900">
+                              {property.shortName ?? property.name}
+                            </div>
+                            <div className="text-xs text-neutral-500">{formatCurrency(property.cost)}</div>
+                            <div className="text-xs font-medium text-neutral-600">{buildingLabel}</div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+              {specialHoldings.map((group) => (
+                <div key={group.key} className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white/80 p-3 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex h-2 w-12 rounded-full" style={{ backgroundColor: group.accent }} />
+                    <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600">{group.label}</span>
+                  </div>
+                  <div className="flex gap-3 overflow-x-auto pb-1">
+                    {group.cards.map((card) => (
+                      <div
+                        key={card.id}
+                        className="flex min-w-[150px] flex-none flex-col gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-sm"
+                        title={card.title}
+                      >
+                        <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+                          <span aria-hidden="true" className="text-base">
+                            {card.icon}
+                          </span>
+                          <span>{card.name}</span>
+                        </div>
+                        <div className="text-xs text-neutral-500">{card.costLabel}</div>
+                        <div className="text-xs font-medium text-neutral-600">{card.detail}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
