@@ -1,4 +1,4 @@
-import React, { useMemo, useReducer } from 'react'
+import React, { useMemo, useReducer, useState } from 'react'
 import Board from './components/Board'
 import { BOARD_SPACES, PROPERTY_IDS_BY_COLOR, PropertySpace, ColorGroup, COLOR_GROUP_DISPLAY } from './data/board'
 import { formatCurrency } from './utils/gameHelpers'
@@ -10,6 +10,8 @@ const App: React.FC = () => {
   const winner = state.winnerId != null ? state.players.find((player) => player.id === state.winnerId) : undefined
   const pendingAction = state.pendingAction
   const pendingDebt = state.pendingDebt && state.players[state.pendingDebt.playerId]?.bankrupt ? null : state.pendingDebt
+
+  const [isPropertyPanelMinimized, setPropertyPanelMinimized] = useState(false)
 
   const monopolies = useMemo(() => {
     return Object.entries(PROPERTY_IDS_BY_COLOR)
@@ -57,6 +59,8 @@ const App: React.FC = () => {
 
   const dice = state.dice
 
+  const propertyPanelPaddingClass = isPropertyPanelMinimized ? 'pb-28' : 'pb-80'
+
   const handleRoll = () => {
     if (!state.canRoll || winner) return
     const die1 = Math.floor(Math.random() * 6) + 1
@@ -98,7 +102,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="relative min-h-screen bg-neutral-100 pb-36">
+    <div className={`relative min-h-screen bg-neutral-100 ${propertyPanelPaddingClass}`}>
       <header className="border-b border-neutral-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <h1 className="text-3xl font-black uppercase tracking-widest text-neutral-800">Monopoly</h1>
@@ -342,57 +346,113 @@ const App: React.FC = () => {
           </aside>
         </div>
       </main>
-      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-200 bg-white/95 py-4 shadow-[0_-8px_16px_rgba(15,23,42,0.12)] backdrop-blur">
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-200 bg-white/95 shadow-[0_-8px_16px_rgba(15,23,42,0.12)] backdrop-blur transition-all duration-200 ${
+          isPropertyPanelMinimized ? 'py-2' : 'py-4'
+        }`}
+      >
         <div className="mx-auto max-w-7xl px-4">
           <div className="flex items-center justify-between gap-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-600">
-              {currentPlayer.name}'s Properties
-            </h3>
-            <span className="text-xs text-neutral-400">Grouped by color</span>
-          </div>
-          {propertyHandGroups.length === 0 ? (
-            <p className="mt-3 text-xs text-neutral-500">You don't own any colored properties yet.</p>
-          ) : (
-            <div className="mt-3 flex flex-col gap-3">
-              {propertyHandGroups.map(({ color, properties }) => {
-                const colorInfo = COLOR_GROUP_DISPLAY[color]
-                return (
-                  <div key={color} className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white/80 p-3 shadow-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex h-2 w-12 rounded-full" style={{ backgroundColor: colorInfo.color }} />
-                      <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600">{colorInfo.label}</span>
-                    </div>
-                    <div className="flex gap-3 overflow-x-auto pb-1">
-                      {properties.map((property) => {
-                        const owned = state.ownership[property.id]
-                        const houseCount = owned?.houses ?? 0
-                        const buildingLabel =
-                          houseCount === 0
-                            ? 'No buildings'
-                            : houseCount === 5
-                            ? 'Hotel'
-                            : `${houseCount} House${houseCount === 1 ? '' : 's'}`
-                        return (
-                          <div
-                            key={property.id}
-                            className="flex min-w-[150px] flex-none flex-col gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-sm"
-                            title={property.name}
-                          >
-                            <div className="h-2 rounded-sm" style={{ backgroundColor: colorInfo.color }} />
-                            <div className="text-sm font-semibold text-neutral-900">
-                              {property.shortName ?? property.name}
-                            </div>
-                            <div className="text-xs text-neutral-500">{formatCurrency(property.cost)}</div>
-                            <div className="text-xs font-medium text-neutral-600">{buildingLabel}</div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
-              })}
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-600">
+                {currentPlayer.name}'s Properties
+              </h3>
+              <span className="text-xs text-neutral-400">
+                {isPropertyPanelMinimized ? 'Panel minimized' : 'Grouped by color'}
+              </span>
             </div>
-          )}
+            <button
+              type="button"
+              onClick={() => setPropertyPanelMinimized((prev) => !prev)}
+              aria-expanded={!isPropertyPanelMinimized}
+              aria-controls="property-tray-content"
+              aria-label={isPropertyPanelMinimized ? 'Expand property panel' : 'Minimize property panel'}
+              className="group inline-flex items-center gap-2 rounded-md border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-600 shadow-sm transition hover:bg-neutral-50"
+            >
+              <span>{isPropertyPanelMinimized ? 'Expand' : 'Minimize'}</span>
+              <svg
+                className={`h-3 w-3 transform transition-transform group-hover:scale-110 ${
+                  isPropertyPanelMinimized ? '-rotate-180' : ''
+                }`}
+                viewBox="0 0 20 20"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M6 8l4 4 4-4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            id="property-tray-content"
+            className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
+              isPropertyPanelMinimized ? 'mt-0 pointer-events-none' : 'mt-3 pointer-events-auto'
+            }`}
+            style={{ maxHeight: isPropertyPanelMinimized ? 0 : 240 }}
+            aria-hidden={isPropertyPanelMinimized}
+          >
+            {propertyHandGroups.length === 0 ? (
+              <p className="py-3 text-xs text-neutral-500">You don't own any colored properties yet.</p>
+            ) : (
+              <div className="flex flex-nowrap items-end gap-6 overflow-x-auto py-3">
+                {propertyHandGroups.map(({ color, properties }) => {
+                  const colorInfo = COLOR_GROUP_DISPLAY[color]
+                  const stackWidth = 128 + Math.max(properties.length - 1, 0) * 24
+                  return (
+                    <div key={color} className="flex flex-none flex-col items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex h-2 w-12 rounded-full" style={{ backgroundColor: colorInfo.color }} />
+                        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600">{colorInfo.label}</span>
+                      </div>
+                      <div className="relative h-40" style={{ width: stackWidth }}>
+                        {properties.map((property, index) => {
+                          const houseCount = state.ownership[property.id]?.houses ?? 0
+                          const offsetX = index * 24
+                          const cardZIndex = properties.length - index
+                          const cardTilt = (index - (properties.length - 1) / 2) * 4
+                          const buildingLabel =
+                            houseCount === 0
+                              ? 'No buildings'
+                              : houseCount === 5
+                              ? 'Hotel'
+                              : `${houseCount} House${houseCount === 1 ? '' : 's'}`
+                          return (
+                            <div
+                              key={property.id}
+                              className="absolute bottom-0"
+                              style={{
+                                left: offsetX,
+                                zIndex: cardZIndex,
+                                transform: `rotate(${cardTilt}deg)`,
+                                transformOrigin: 'bottom center'
+                              }}
+                            >
+                              <div
+                                className="flex w-32 flex-col gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-sm transition-transform duration-200 hover:-translate-y-1 transform"
+                                title={property.name}
+                              >
+                                <div className="h-2 rounded-sm" style={{ backgroundColor: colorInfo.color }} />
+                                <div className="text-sm font-semibold text-neutral-900">
+                                  {property.shortName ?? property.name}
+                                </div>
+                                <div className="text-xs text-neutral-500">{formatCurrency(property.cost)}</div>
+                                <div className="text-xs font-medium text-neutral-600">{buildingLabel}</div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
