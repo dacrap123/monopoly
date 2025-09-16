@@ -59,6 +59,9 @@ const App: React.FC = () => {
 
   const dice = state.dice
 
+  const propertyPanelToggleText = isPropertyPanelMinimized ? 'Expand' : 'Minimize'
+  const propertyPanelToggleAriaLabel = `${propertyPanelToggleText} property panel`
+
   const handleRoll = () => {
     if (!state.canRoll || winner) return
     const die1 = Math.floor(Math.random() * 6) + 1
@@ -364,10 +367,10 @@ const App: React.FC = () => {
               onClick={() => setPropertyPanelMinimized((prev) => !prev)}
               aria-expanded={!isPropertyPanelMinimized}
               aria-controls="property-tray-content"
-              aria-label={isPropertyPanelMinimized ? 'Expand property panel' : 'Minimize property panel'}
+              aria-label={propertyPanelToggleAriaLabel}
               className="group inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-600 shadow-sm transition hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             >
-              <span>{isPropertyPanelMinimized ? 'Expand' : 'Minimize'}</span>
+              <span>{propertyPanelToggleText}</span>
               <svg
                 className={`h-3 w-3 transition-transform ${isPropertyPanelMinimized ? '-rotate-90' : 'rotate-90'}`}
                 viewBox="0 0 20 20"
