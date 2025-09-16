@@ -99,28 +99,6 @@ const App: React.FC = () => {
     dispatch({ type: 'USE_GET_OUT_OF_JAIL_CARD', deck })
   }
 
-  const renderPropertyTrayToggle = (label: string, isMinimized: boolean, extraClasses = '') => (
-    <button
-      type="button"
-      onClick={() => setPropertyPanelMinimized(!isMinimized)}
-      aria-expanded={!isMinimized}
-      aria-controls="property-tray-content"
-      aria-label={isMinimized ? 'Show property cards' : 'Hide property cards'}
-      className={`group inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-600 shadow-sm transition hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${extraClasses}`}
-    >
-      <span>{label}</span>
-      <svg
-        className={`h-3 w-3 transition-transform ${isMinimized ? '-rotate-90' : 'rotate-90'}`}
-        viewBox="0 0 20 20"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <path d="M6 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </button>
-  )
-
   return (
     <div className={`relative min-h-screen bg-neutral-100 ${isPropertyPanelMinimized ? 'pb-24' : 'pb-56'}`}>
       <header className="border-b border-neutral-200 bg-white shadow-sm">
@@ -380,14 +358,32 @@ const App: React.FC = () => {
               </h3>
               <span className="text-xs text-neutral-400">Grouped by color</span>
             </div>
-            {renderPropertyTrayToggle(isPropertyPanelMinimized ? 'Show cards' : 'Hide cards', isPropertyPanelMinimized)}
+            <button
+              type="button"
+              onClick={() => setPropertyPanelMinimized((prev) => !prev)}
+              aria-expanded={!isPropertyPanelMinimized}
+              aria-controls="property-tray-content"
+              aria-label={isPropertyPanelMinimized ? 'Show property cards' : 'Hide property cards'}
+              className="group inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-600 shadow-sm transition hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            >
+              <span>{isPropertyPanelMinimized ? 'Show cards' : 'Hide cards'}</span>
+              <svg
+                className={`h-3 w-3 transition-transform ${isPropertyPanelMinimized ? '-rotate-90' : 'rotate-90'}`}
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path d="M6 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
           </div>
           <div
             id="property-tray-content"
             className={`overflow-hidden transition-[max-height] duration-300 ${
               isPropertyPanelMinimized ? 'mt-0 pointer-events-none' : 'mt-3 pointer-events-auto'
             }`}
-            style={{ maxHeight: isPropertyPanelMinimized ? 0 : 224 }}
+            style={{ maxHeight: isPropertyPanelMinimized ? 0 : 400 }}
           >
             {propertyHandGroups.length === 0 ? (
               <p className="text-xs text-neutral-500">You don't own any colored properties yet.</p>
@@ -446,7 +442,25 @@ const App: React.FC = () => {
       </div>
       {isPropertyPanelMinimized && (
         <div className="fixed bottom-4 right-4 z-30">
-          {renderPropertyTrayToggle('Show cards', true, 'shadow-lg')}
+          <button
+            type="button"
+            onClick={() => setPropertyPanelMinimized(false)}
+            aria-expanded={!isPropertyPanelMinimized}
+            aria-controls="property-tray-content"
+            aria-label="Show property cards"
+            className="group inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-600 shadow-lg transition hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+          >
+            <span>Show cards</span>
+            <svg
+              className="h-3 w-3 -rotate-90 transition-transform"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path d="M6 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
         </div>
       )}
     </div>
