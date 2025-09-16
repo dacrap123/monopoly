@@ -19,6 +19,7 @@ const Board: React.FC<BoardProps> = ({ ownership, players, currentPlayerId }) =>
           const owned = ownership[space.id]
           const owner = owned?.ownerId != null ? players.find((player) => player.id === owned.ownerId && !player.bankrupt) : undefined
           const playersHere = players.filter((player) => !player.bankrupt && player.position === space.id)
+          const showNameBelow = space.type !== 'property'
 
           return (
             <div
@@ -33,9 +34,11 @@ const Board: React.FC<BoardProps> = ({ ownership, players, currentPlayerId }) =>
                 style={owner ? { boxShadow: `0 0 0 2px ${owner.color}55` } : undefined}
               >
                 <SpaceContent space={space} owned={owned} />
-                <div className="mt-1 min-h-[24px] break-words px-[2px] text-center text-[8px] font-semibold leading-tight tracking-tight text-neutral-900">
-                  {space.shortName ?? space.name}
-                </div>
+                {showNameBelow && (
+                  <div className="mt-1 min-h-[24px] break-words px-[2px] text-center text-[8px] font-semibold leading-tight tracking-tight text-neutral-900">
+                    {space.shortName ?? space.name}
+                  </div>
+                )}
                 <div className="px-[2px] text-center text-[7px] font-semibold uppercase tracking-tight text-neutral-500">
                   {renderSpaceSubtitle(space)}
                 </div>
@@ -77,10 +80,15 @@ interface SpaceContentProps {
 
 const SpaceContent: React.FC<SpaceContentProps> = ({ space, owned }) => {
   if (space.type === 'property') {
-    const color = COLOR_GROUP_DISPLAY[space.color].color
+    const colorInfo = COLOR_GROUP_DISPLAY[space.color]
     return (
       <div className="flex flex-col items-center gap-1">
-        <div className="h-3 rounded-sm" style={{ backgroundColor: color }} />
+        <div
+          className="flex w-full min-h-[18px] items-center justify-center rounded-sm px-[2px] py-[1px] text-center text-[7px] font-semibold uppercase leading-tight tracking-tight"
+          style={{ backgroundColor: colorInfo.color, color: colorInfo.textColor }}
+        >
+          <span className="block w-full break-words">{space.shortName ?? space.name}</span>
+        </div>
         <BuildingDisplay houses={owned?.houses ?? 0} />
       </div>
     )

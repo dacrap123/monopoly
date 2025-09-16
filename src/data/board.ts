@@ -388,15 +388,15 @@ export const BOARD_SPACES: BoardSpace[] = [
   },
 ]
 
-export const COLOR_GROUP_DISPLAY: Record<ColorGroup, { label: string; color: string }> = {
-  brown: { label: 'Brown', color: '#955436' },
-  'light-blue': { label: 'Light Blue', color: '#9ad8f7' },
-  magenta: { label: 'Magenta', color: '#d94fa6' },
-  orange: { label: 'Orange', color: '#f89736' },
-  red: { label: 'Red', color: '#e63946' },
-  yellow: { label: 'Yellow', color: '#f9c74f' },
-  green: { label: 'Green', color: '#2a9d8f' },
-  'dark-blue': { label: 'Dark Blue', color: '#264653' },
+export const COLOR_GROUP_DISPLAY: Record<ColorGroup, { label: string; color: string; textColor: string }> = {
+  brown: { label: 'Brown', color: '#955436', textColor: '#fdf2e9' },
+  'light-blue': { label: 'Light Blue', color: '#9ad8f7', textColor: '#1f2937' },
+  magenta: { label: 'Magenta', color: '#d94fa6', textColor: '#fef2f9' },
+  orange: { label: 'Orange', color: '#f89736', textColor: '#1f2937' },
+  red: { label: 'Red', color: '#e63946', textColor: '#fff5f5' },
+  yellow: { label: 'Yellow', color: '#f9c74f', textColor: '#1f2937' },
+  green: { label: 'Green', color: '#2a9d8f', textColor: '#ecfdf5' },
+  'dark-blue': { label: 'Dark Blue', color: '#264653', textColor: '#f8fafc' },
 }
 
 export const PROPERTY_IDS_BY_COLOR = BOARD_SPACES.reduce<Record<ColorGroup, number[]>>((acc, space) => {
