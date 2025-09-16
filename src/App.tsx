@@ -1,6 +1,6 @@
-import React, { useMemo, useReducer, useState } from 'react'
+import React, { useMemo, useReducer } from 'react'
 import Board from './components/Board'
-import { BOARD_SPACES, PROPERTY_IDS_BY_COLOR, PropertySpace, ColorGroup, COLOR_GROUP_DISPLAY } from './data/board'
+import { BOARD_SPACES, PROPERTY_IDS_BY_COLOR, PropertySpace } from './data/board'
 import { formatCurrency } from './utils/gameHelpers'
 import { canBuild, canSell, createInitialState, gameReducer } from './utils/gameEngine'
 
@@ -10,8 +10,6 @@ const App: React.FC = () => {
   const winner = state.winnerId != null ? state.players.find((player) => player.id === state.winnerId) : undefined
   const pendingAction = state.pendingAction
   const pendingDebt = state.pendingDebt && state.players[state.pendingDebt.playerId]?.bankrupt ? null : state.pendingDebt
-
-  const [isPropertyPanelMinimized, setPropertyPanelMinimized] = useState(false)
 
   const monopolies = useMemo(() => {
     return Object.entries(PROPERTY_IDS_BY_COLOR)
@@ -30,38 +28,7 @@ const App: React.FC = () => {
     return ownedProperties.filter((space) => monopolyIds.has(space.id) || (state.ownership[space.id]?.houses ?? 0) > 0)
   }, [monopolies, ownedProperties, state.ownership])
 
-  const propertyHandGroups = useMemo(() => {
-    const grouped = new Map<ColorGroup, PropertySpace[]>()
-
-    for (const property of ownedProperties) {
-      const existing = grouped.get(property.color)
-      if (existing) {
-        existing.push(property)
-      } else {
-        grouped.set(property.color, [property])
-      }
-    }
-
-    return (Object.keys(PROPERTY_IDS_BY_COLOR) as ColorGroup[])
-      .map((color) => {
-        const properties = grouped.get(color) ?? []
-        if (properties.length === 0) {
-          return null
-        }
-        const orderedIds = PROPERTY_IDS_BY_COLOR[color]
-        const sorted = [...properties].sort((a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id))
-        return { color, properties: sorted }
-      })
-      .filter(Boolean) as { color: ColorGroup; properties: PropertySpace[] }[]
-  }, [ownedProperties])
-
-  const propertyPanelToggleText = isPropertyPanelMinimized ? 'Expand' : 'Minimize'
-  const propertyPanelToggleAriaLabel = isPropertyPanelMinimized ? 'Expand property panel' : 'Minimize property panel'
-
   const dice = state.dice
-
-  const propertyPanelToggleText = isPropertyPanelMinimized ? 'Expand' : 'Minimize'
-  const propertyPanelToggleAriaLabel = `${propertyPanelToggleText} property panel`
 
   const handleRoll = () => {
     if (!state.canRoll || winner) return
@@ -104,7 +71,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className={`relative min-h-screen bg-neutral-100 ${isPropertyPanelMinimized ? 'pb-24' : 'pb-56'}`}>
+    <div className="relative min-h-screen bg-neutral-100">
       <header className="border-b border-neutral-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <h1 className="text-3xl font-black uppercase tracking-widest text-neutral-800">Monopoly</h1>
@@ -348,103 +315,6 @@ const App: React.FC = () => {
           </aside>
         </div>
       </main>
-      <div
-        className={`fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-200 bg-white/95 shadow-[0_-8px_16px_rgba(15,23,42,0.12)] backdrop-blur transition-all duration-200 ${
-          isPropertyPanelMinimized ? 'py-2' : 'py-4'
-        }`}
-      >
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-600">
-                {currentPlayer.name}'s Properties
-              </h3>
-              <span className="text-xs text-neutral-400">
-                {isPropertyPanelMinimized ? 'Panel minimized' : 'Grouped by color'}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setPropertyPanelMinimized((prev) => !prev)}
-              aria-expanded={!isPropertyPanelMinimized}
-              aria-controls="property-tray-content"
-              aria-label={propertyPanelToggleAriaLabel}
-              className="group inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-600 shadow-sm transition hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-            >
-              <span>{propertyPanelToggleText}</span>
-              <svg
-                className={`h-3 w-3 transition-transform ${isPropertyPanelMinimized ? '-rotate-90' : 'rotate-90'}`}
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-              >
-                <path d="M6 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          </div>
-          <div
-            id="property-tray-content"
-            className={`overflow-hidden transition-[max-height] duration-300 ${
-              isPropertyPanelMinimized ? 'mt-0 pointer-events-none' : 'mt-3 pointer-events-auto'
-            }`}
-            style={{ maxHeight: isPropertyPanelMinimized ? 0 : 400 }}
-          >
-            {propertyHandGroups.length === 0 ? (
-              <p className="text-xs text-neutral-500">You don't own any colored properties yet.</p>
-            ) : (
-              <div className="flex flex-nowrap items-end gap-6 overflow-x-auto pb-3">
-                {propertyHandGroups.map(({ color, properties }) => {
-                  const colorInfo = COLOR_GROUP_DISPLAY[color]
-                  const stackWidth = 128 + Math.max(properties.length - 1, 0) * 24
-                  return (
-                    <div key={color} className="flex flex-none flex-col items-center gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex h-2 w-12 rounded-full" style={{ backgroundColor: colorInfo.color }} />
-                        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600">{colorInfo.label}</span>
-                      </div>
-                      <div className="relative h-40" style={{ width: stackWidth }}>
-                        {properties.map((property, index) => {
-                          const houseCount = state.ownership[property.id]?.houses ?? 0
-                          const offsetX = index * 24
-                          const cardZIndex = properties.length - index
-                          const cardTilt = (index - (properties.length - 1) / 2) * 3
-                          const buildingLabel =
-                            houseCount === 0
-                              ? 'No buildings'
-                              : houseCount === 5
-                              ? 'Hotel'
-                              : `${houseCount} House${houseCount === 1 ? '' : 's'}`
-                          return (
-                            <div
-                              key={property.id}
-                              className="absolute bottom-0 flex w-32 flex-col gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-sm transition-transform duration-200 hover:-translate-y-1"
-                              style={{
-                                left: `${offsetX}px`,
-                                zIndex: cardZIndex,
-                                transform: `rotate(${cardTilt}deg)`,
-                                transformOrigin: 'bottom center',
-                              }}
-                              title={property.name}
-                            >
-                              <div className="h-2 rounded-sm" style={{ backgroundColor: colorInfo.color }} />
-                              <div className="text-sm font-semibold text-neutral-900">
-                                {property.shortName ?? property.name}
-                              </div>
-                              <div className="text-xs text-neutral-500">{formatCurrency(property.cost)}</div>
-                              <div className="text-xs font-medium text-neutral-600">{buildingLabel}</div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
