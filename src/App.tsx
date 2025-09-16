@@ -49,13 +49,14 @@ const App: React.FC = () => {
           return null
         }
         const orderedIds = PROPERTY_IDS_BY_COLOR[color]
-        const sorted = [...properties].sort(
-          (a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id)
-        )
+        const sorted = [...properties].sort((a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id))
         return { color, properties: sorted }
       })
       .filter(Boolean) as { color: ColorGroup; properties: PropertySpace[] }[]
   }, [ownedProperties])
+
+  const propertyPanelToggleText = isPropertyPanelMinimized ? 'Expand' : 'Minimize'
+  const propertyPanelToggleAriaLabel = isPropertyPanelMinimized ? 'Expand property panel' : 'Minimize property panel'
 
   const dice = state.dice
 
