@@ -11,8 +11,6 @@ const App: React.FC = () => {
   const pendingAction = state.pendingAction
   const pendingDebt = state.pendingDebt && state.players[state.pendingDebt.playerId]?.bankrupt ? null : state.pendingDebt
 
-  const monopolies = useMemo(() => {
-    return Object.entries(PROPERTY_IDS_BY_COLOR)
       .filter(([_, ids]) => ids.every((id) => state.ownership[id]?.ownerId === currentPlayer.id))
       .map(([color, ids]) => ({ color, ids }))
   }, [state.ownership, currentPlayer.id])
@@ -28,33 +26,6 @@ const App: React.FC = () => {
     return ownedProperties.filter((space) => monopolyIds.has(space.id) || (state.ownership[space.id]?.houses ?? 0) > 0)
   }, [monopolies, ownedProperties, state.ownership])
 
-  const dice = state.dice
-
-  const handleRoll = () => {
-    if (!state.canRoll || winner) return
-    const die1 = Math.floor(Math.random() * 6) + 1
-    const die2 = Math.floor(Math.random() * 6) + 1
-    dispatch({ type: 'ROLL', values: [die1, die2] })
-  }
-
-  const handlePurchase = (buy: boolean) => {
-    if (!pendingAction) return
-    dispatch({ type: 'RESOLVE_PURCHASE', spaceId: pendingAction.spaceId, buy })
-  }
-
-  const handleEndTurn = () => {
-    dispatch({ type: 'END_TURN' })
-  }
-
-  const handleResolveDebt = () => {
-    dispatch({ type: 'RESOLVE_DEBT' })
-  }
-
-  const handleDeclareBankruptcy = () => {
-    dispatch({ type: 'DECLARE_BANKRUPTCY' })
-  }
-
-  const handleBuild = (spaceId: number) => {
     dispatch({ type: 'BUILD', spaceId })
   }
 
@@ -319,5 +290,4 @@ const App: React.FC = () => {
     </div>
   )
 }
-
-export default App
+      <div className="h-24" />
