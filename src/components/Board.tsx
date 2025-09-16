@@ -27,23 +27,28 @@ const Board: React.FC<BoardProps> = ({ ownership, players, currentPlayerId }) =>
               className="relative"
             >
               <div
-                className={`relative flex h-full w-full flex-col items-center rounded-xl border border-neutral-300 bg-white px-1.5 py-2 text-center text-[10px] font-medium uppercase text-neutral-700 ${
+                className={`relative flex h-full w-full flex-col items-center gap-1 rounded-xl border border-neutral-300 bg-white px-1 py-2 text-center text-neutral-700 ${
                   owner ? 'shadow-[0_0_0_2px_rgba(0,0,0,0.05)]' : ''
                 }`}
                 style={owner ? { boxShadow: `0 0 0 2px ${owner.color}55` } : undefined}
               >
                 <SpaceContent space={space} owned={owned} />
-                <div className="mt-1 w-full break-words text-[8px] font-semibold leading-tight tracking-tight text-neutral-900">
-                  {space.shortName ?? space.name}
-                </div>
-                <div className="w-full text-[7px] font-semibold uppercase tracking-tight text-neutral-500">
-                  {renderSpaceSubtitle(space)}
-                </div>
-                {owner && (
-                  <div className="mt-1 w-full text-[7px] font-bold" style={{ color: owner.color }}>
-                    {owner.name}
+                <div className="flex w-full flex-1 flex-col items-center px-0.5 text-center">
+                  <div className="w-full max-w-[95%] whitespace-normal break-words text-[7px] font-semibold leading-[1.15] text-neutral-900">
+                    {space.shortName ?? space.name}
                   </div>
-                )}
+                  <div className="mt-0.5 w-full text-[6.5px] font-semibold uppercase tracking-wide text-neutral-500 leading-[1.15]">
+                    {renderSpaceSubtitle(space)}
+                  </div>
+                  {owner && (
+                    <div
+                      className="mt-0.5 w-full truncate text-[6.5px] font-bold leading-[1.15]"
+                      style={{ color: owner.color }}
+                    >
+                      {owner.name}
+                    </div>
+                  )}
+                </div>
               </div>
               {playersHere.length > 0 && (
                 <div className="absolute bottom-1 left-1 flex flex-wrap gap-[2px]">

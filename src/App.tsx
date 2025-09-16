@@ -111,6 +111,8 @@ const App: React.FC = () => {
   )
 
   const hasPropertyHandContent = propertyHandGroups.length > 0 || specialHoldings.length > 0
+  const isActiveTurn = state.players[state.currentPlayerIndex]?.id === currentPlayer.id && !currentPlayer.bankrupt
+  const showPropertyHand = isActiveTurn && !winner
 
   const dice = state.dice
 
@@ -399,85 +401,87 @@ const App: React.FC = () => {
           </aside>
         </div>
       </main>
-      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-200 bg-white/95 py-4 shadow-[0_-8px_16px_rgba(15,23,42,0.12)] backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="flex items-center justify-between gap-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-600">
-              {currentPlayer.name}'s Properties
-            </h3>
-            <span className="text-xs text-neutral-400">Grouped by color and type</span>
-          </div>
-          {!hasPropertyHandContent ? (
-            <p className="mt-3 text-xs text-neutral-500">You don't own any properties yet.</p>
-          ) : (
-            <div className="mt-3 flex flex-col gap-3">
-              {propertyHandGroups.map(({ color, properties }) => {
-                const colorInfo = COLOR_GROUP_DISPLAY[color]
-                return (
-                  <div key={color} className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white/80 p-3 shadow-sm">
+      {showPropertyHand && (
+        <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-200 bg-white/95 py-4 shadow-[0_-8px_16px_rgba(15,23,42,0.12)] backdrop-blur">
+          <div className="mx-auto max-w-7xl px-4">
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-600">
+                {currentPlayer.name}'s Properties
+              </h3>
+              <span className="text-xs text-neutral-400">Grouped by color and type</span>
+            </div>
+            {!hasPropertyHandContent ? (
+              <p className="mt-3 text-xs text-neutral-500">You don't own any properties yet.</p>
+            ) : (
+              <div className="mt-3 flex flex-col gap-3">
+                {propertyHandGroups.map(({ color, properties }) => {
+                  const colorInfo = COLOR_GROUP_DISPLAY[color]
+                  return (
+                    <div key={color} className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white/80 p-3 shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex h-2 w-12 rounded-full" style={{ backgroundColor: colorInfo.color }} />
+                        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600">{colorInfo.label}</span>
+                      </div>
+                      <div className="flex gap-3 overflow-x-auto pb-1">
+                        {properties.map((property) => {
+                          const owned = state.ownership[property.id]
+                          const houseCount = owned?.houses ?? 0
+                          const buildingLabel =
+                            houseCount === 0
+                              ? 'No buildings'
+                              : houseCount === 5
+                              ? 'Hotel'
+                              : `${houseCount} House${houseCount === 1 ? '' : 's'}`
+                          return (
+                            <div
+                              key={property.id}
+                              className="flex min-w-[150px] flex-none flex-col gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-sm"
+                              title={property.name}
+                            >
+                              <div className="h-2 rounded-sm" style={{ backgroundColor: colorInfo.color }} />
+                              <div className="text-sm font-semibold text-neutral-900">
+                                {property.shortName ?? property.name}
+                              </div>
+                              <div className="text-xs text-neutral-500">{formatCurrency(property.cost)}</div>
+                              <div className="text-xs font-medium text-neutral-600">{buildingLabel}</div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+                {specialHoldings.map((group) => (
+                  <div key={group.key} className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white/80 p-3 shadow-sm">
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex h-2 w-12 rounded-full" style={{ backgroundColor: colorInfo.color }} />
-                      <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600">{colorInfo.label}</span>
+                      <span className="inline-flex h-2 w-12 rounded-full" style={{ backgroundColor: group.accent }} />
+                      <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600">{group.label}</span>
                     </div>
                     <div className="flex gap-3 overflow-x-auto pb-1">
-                      {properties.map((property) => {
-                        const owned = state.ownership[property.id]
-                        const houseCount = owned?.houses ?? 0
-                        const buildingLabel =
-                          houseCount === 0
-                            ? 'No buildings'
-                            : houseCount === 5
-                            ? 'Hotel'
-                            : `${houseCount} House${houseCount === 1 ? '' : 's'}`
-                        return (
-                          <div
-                            key={property.id}
-                            className="flex min-w-[150px] flex-none flex-col gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-sm"
-                            title={property.name}
-                          >
-                            <div className="h-2 rounded-sm" style={{ backgroundColor: colorInfo.color }} />
-                            <div className="text-sm font-semibold text-neutral-900">
-                              {property.shortName ?? property.name}
-                            </div>
-                            <div className="text-xs text-neutral-500">{formatCurrency(property.cost)}</div>
-                            <div className="text-xs font-medium text-neutral-600">{buildingLabel}</div>
+                      {group.cards.map((card) => (
+                        <div
+                          key={card.id}
+                          className="flex min-w-[150px] flex-none flex-col gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-sm"
+                          title={card.title}
+                        >
+                          <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+                            <span aria-hidden="true" className="text-base">
+                              {card.icon}
+                            </span>
+                            <span>{card.name}</span>
                           </div>
-                        )
-                      })}
+                          <div className="text-xs text-neutral-500">{card.costLabel}</div>
+                          <div className="text-xs font-medium text-neutral-600">{card.detail}</div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                )
-              })}
-              {specialHoldings.map((group) => (
-                <div key={group.key} className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white/80 p-3 shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex h-2 w-12 rounded-full" style={{ backgroundColor: group.accent }} />
-                    <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600">{group.label}</span>
-                  </div>
-                  <div className="flex gap-3 overflow-x-auto pb-1">
-                    {group.cards.map((card) => (
-                      <div
-                        key={card.id}
-                        className="flex min-w-[150px] flex-none flex-col gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 shadow-sm"
-                        title={card.title}
-                      >
-                        <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-                          <span aria-hidden="true" className="text-base">
-                            {card.icon}
-                          </span>
-                          <span>{card.name}</span>
-                        </div>
-                        <div className="text-xs text-neutral-500">{card.costLabel}</div>
-                        <div className="text-xs font-medium text-neutral-600">{card.detail}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
