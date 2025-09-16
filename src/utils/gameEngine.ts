@@ -328,6 +328,7 @@ function applyCard(state: GameState, card: Card, deck: 'chance' | 'community', p
       break
     case 'pay':
       attemptPayment(state, player.id, card.amount, null, card.description, { allowDebt: true })
+      if (!state.pendingDebt) finalizePostAction(state)
       break
     case 'advance': {
       const start = player.position
@@ -385,12 +386,14 @@ function applyCard(state: GameState, card: Card, deck: 'chance' | 'community', p
           attemptPayment(state, player.id, card.amount, other.id, card.description, { allowDebt: true })
         }
       })
+      if (!state.pendingDebt) finalizePostAction(state)
       break
     }
     case 'property-expense': {
       const cost = calculatePropertyRepairCost(state, player, card.perHouse, card.perHotel)
       if (cost > 0) {
         attemptPayment(state, player.id, cost, null, card.description, { allowDebt: true })
+        if (!state.pendingDebt) finalizePostAction(state)
       } else {
         finalizePostAction(state)
       }
